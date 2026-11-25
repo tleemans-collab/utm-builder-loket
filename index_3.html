@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UTM Builder | Loket</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans:wght@300;400;600;700&family=Sofia+Sans+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ==========================================================
+       Loket huisstijl — bron: Notion "Brand guide - Loket" §6.2 / §6.3
+       Primair 1  #E0336E  magenta        beeldmerk + accenten
+       Primair 2  #263272  donkerpaars    teksten / achtergrond
+       Secundair  #F0EEED  lichtgrijs     steunkleur / achtergrond
+       Accent     #EB6309  oranje         CTA's en functionele accenten
+       Headline   Sofia Sans Condensed | Body Sofia Sans | fallback Arial
+       ========================================================== */
+    :root {
+      --navy: #263272;
+      --navy-dark: #1b2454;
+      --navy-tint: #eaecf5;
+      --magenta: #E0336E;
+      --magenta-dark: #bc2559;
+      --magenta-tint: #fdeef4;
+      --orange: #EB6309;
+      --orange-dark: #c8500a;
+      --orange-tint: #fdf1e7;
+
+      /* Zet --cta op #C24F05 voor strikt WCAG AA op witte buttontekst.
+         #EB6309 is de merkkleur maar haalt met wit 13px net geen 4.5:1. */
+      --cta: #EB6309;
+      --cta-hover: #c8500a;
+
+      --grey: #F0EEED;
+      --white: #ffffff;
+      --border: #ddd7d5;
+      --border-strong: #c9c2bf;
+
+      --text: #263272;
+      --muted: #6b7295;
+      --muted2: #9aa0bd;
+
+      --ok: #157f5e;
+      --ok-bg: #eef8f4;
+
+      --r-lg: 12px;
+      --r-md: 8px;
+      --r-sm: 6px;
+
+      --display: 'Sofia Sans Condensed', 'Sofia Sans', Arial, sans-serif;
+      --sans: 'Sofia Sans', Arial, sans-serif;
+      --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Courier New', monospace;
+    }
+
+    body { background: var(--grey); color: var(--text); font-family: var(--sans); min-height: 100vh; font-size: 14px; -webkit-font-smoothing: antialiased; }
+
+    /* ---------- Topbar ---------- */
+    .topbar { background: var(--navy); padding: 0 32px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    /* placeholder: vervang door het losse Loket-beeldmerk (SVG) uit de DAM */
+    .brand-icon { width: 32px; height: 32px; background: var(--magenta); border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .brand-icon svg { width: 17px; height: 17px; }
+    .brand-name { font-family: var(--display); font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: #fff; }
+    .brand-name span { color: var(--magenta); }
+    .topbar-meta { font-size: 12.5px; color: rgba(255,255,255,.62); }
+    .topbar-meta a { color: rgba(255,255,255,.82); text-decoration: underline; text-underline-offset: 2px; }
+
+    .app { max-width: 760px; margin: 0 auto; padding: 40px 24px 90px; }
+
+    .intro { margin-bottom: 26px; }
+    .intro h2 { font-family: var(--display); font-size: 30px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.1; margin-bottom: 8px; color: var(--navy); }
+    .intro p { font-size: 14.5px; color: var(--muted); line-height: 1.6; max-width: 62ch; }
+    .intro p a { color: var(--magenta-dark); font-weight: 600; }
+
+    /* ---------- Accordion ---------- */
+    .accordion { background: var(--white); border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: 28px; overflow: hidden; }
+    .accordion-trigger { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: none; border: none; font-family: var(--sans); font-size: 14px; font-weight: 700; color: var(--navy); cursor: pointer; text-align: left; gap: 12px; }
+    .accordion-trigger:hover { background: var(--grey); }
+    .accordion-trigger-left { display: flex; align-items: center; gap: 11px; }
+    .accordion-icon { width: 28px; height: 28px; background: var(--magenta-tint); border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .accordion-icon svg { width: 15px; height: 15px; }
+    .accordion-chevron { flex-shrink: 0; color: var(--muted2); transition: transform .25s; }
+    .accordion.open .accordion-chevron { transform: rotate(180deg); }
+    .accordion-body { display: none; border-top: 1px solid var(--border); padding: 24px 20px; }
+    .accordion.open .accordion-body { display: block; }
+    .acc-intro { font-size: 13.5px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+    .acc-blocks { display: flex; flex-direction: column; gap: 10px; }
+    .acc-block { background: var(--grey); border-radius: var(--r-md); padding: 14px 16px; display: flex; gap: 14px; align-items: flex-start; }
+    .acc-block-icon { width: 26px; height: 26px; border-radius: var(--r-sm); background: var(--white); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; line-height: 1; margin-top: 1px; }
+    .acc-block-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .acc-block-text { font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+    code { font-family: var(--mono); font-size: 11.5px; color: var(--magenta-dark); background: var(--magenta-tint); padding: 1px 5px; border-radius: 3px; }
+    .acc-tip { margin-top: 16px; font-size: 12.5px; color: #7a4008; line-height: 1.65; padding: 12px 14px; background: var(--orange-tint); border-radius: var(--r-md); border: 1px solid #f6cda6; }
+    .acc-tip strong { color: var(--orange-dark); }
+
+    /* ---------- Voortgang ---------- */
+    .progress { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+    .progress-track { flex: 1; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 25%; background: var(--magenta); border-radius: 4px; transition: width .35s ease; }
+    .progress-label { font-family: var(--display); font-size: 13px; font-weight: 600; color: var(--navy); white-space: nowrap; }
+
+    /* ---------- Stappen ---------- */
+    .step { display: flex; gap: 20px; margin-bottom: 12px; position: relative; scroll-margin-top: 76px; }
+    .step:not(:last-of-type) .step-left::after { content: ''; position: absolute; left: 15px; top: 48px; bottom: -12px; width: 2px; border-radius: 2px; z-index: 0; background: var(--border); }
+    .step.done .step-left::after { background: rgba(224,51,110,.45); }
+    .step.active:not(:last-of-type) .step-left::after { background: var(--magenta); opacity: .28; }
+    .step.active:not(:last-of-type) .step-left::before { content: ''; position: absolute; left: 12px; bottom: -16px; width: 8px; height: 8px; border-radius: 50%; background: var(--magenta); opacity: .28; z-index: 1; }
+    .step.last-visible .step-left::after, .step.last-visible .step-left::before { display: none; }
+    .step-left { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; position: relative; z-index: 1; }
+    .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--white); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--muted2); transition: border-color .2s, background .2s, color .2s; flex-shrink: 0; }
+    .step.active .step-num { border-color: var(--magenta); background: var(--magenta); color: #fff; }
+    .step.done .step-num { border-color: var(--magenta); background: var(--magenta-tint); color: var(--magenta-dark); }
+    .step.done .step-num::after { content: '✓'; }
+    .step-right { flex: 1; min-width: 0; }
+    .step-card { background: var(--white); border: 1.5px solid var(--border); border-radius: var(--r-lg); transition: border-color .2s; }
+    .step.active .step-card { border-color: var(--magenta); }
+    .step-card-header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .step-card-title { font-family: var(--display); font-size: 18px; font-weight: 600; color: var(--navy); line-height: 1.2; }
+    .step-card-sub { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+    .step-counter { font-family: var(--display); font-size: 11.5px; font-weight: 600; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 3px; }
+    .step-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; flex-shrink: 0; white-space: nowrap; }
+    .badge-required { background: var(--magenta-tint); color: var(--magenta-dark); }
+    .badge-done { background: var(--ok-bg); color: var(--ok); }
+    .step-card-body { padding: 16px 18px 18px; border-top: 1px solid var(--border); }
+    .step.done .step-card-body { display: none; }
+    .step.locked { display: none; }
+
+    .done-summary { display: none; padding: 0 18px 14px; font-size: 12.5px; color: var(--muted); line-height: 1.6; align-items: baseline; gap: 10px; }
+    .done-summary strong { color: var(--navy); font-weight: 700; }
+    .step.done .done-summary { display: flex; }
+    .edit-link { background: none; border: none; padding: 0; font-family: var(--sans); font-size: 12.5px; font-weight: 700; color: var(--magenta); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; margin-left: auto; flex-shrink: 0; }
+    .edit-link:hover { color: var(--magenta-dark); }
+
+    /* ---------- Velden ---------- */
+    .field { margin-bottom: 15px; }
+    .field:last-child { margin-bottom: 0; }
+    label { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    label code { font-weight: 400; }
+    .field-hint { font-size: 11.5px; color: var(--muted2); margin-top: 6px; line-height: 1.55; }
+    input[type="text"], input[type="number"], input[type="date"], select {
+      width: 100%; background: var(--white); border: 1px solid var(--border-strong);
+      border-radius: var(--r-md); padding: 10px 12px; color: var(--text);
+      font-family: var(--sans); font-size: 13.5px; outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    select {
+      appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 34px;
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5l4 4 4-4' stroke='%239aa0bd' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;
+    }
+    input:focus, select:focus { border-color: var(--magenta); box-shadow: 0 0 0 3px rgba(224,51,110,.14); }
+    input::placeholder { color: var(--muted2); }
+    input.invalid { border-color: var(--orange-dark); }
+
+    .note { font-size: 11.5px; line-height: 1.6; margin-top: 8px; padding: 10px 12px; border-radius: var(--r-sm); }
+    .note-warn { color: #7a4008; background: var(--orange-tint); border: 1px solid #f6cda6; }
+    .note-info { color: var(--navy); background: var(--navy-tint); border: 1px solid #d3d8ea; }
+    .note-ok { color: var(--ok); background: var(--ok-bg); border: 1px solid #c7e7da; }
+    .note.hidden, .hidden { display: none; }
+    .note strong { font-weight: 700; }
+
+    .section-sep { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+    .section-label { font-family: var(--display); font-size: 11.5px; font-weight: 600; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 12px; }
+
+    /* ---------- Kanaalkiezer ---------- */
+    .chan-group { margin-bottom: 16px; }
+    .chan-group:last-child { margin-bottom: 0; }
+    .chan-group-label { font-family: var(--display); font-size: 11.5px; font-weight: 600; color: var(--muted2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+    .chan-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+    .chan-btn { background: var(--grey); border: 1.5px solid var(--border); border-radius: var(--r-md); padding: 10px 12px; text-align: left; cursor: pointer; font-family: var(--sans); transition: border-color .15s, background .15s; display: flex; align-items: flex-start; gap: 9px; }
+    .chan-btn:hover { border-color: var(--magenta); background: var(--magenta-tint); }
+    .chan-btn.selected { border-color: var(--magenta); background: var(--magenta-tint); }
+    .chan-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--magenta); flex-shrink: 0; opacity: .4; margin-top: 5px; }
+    .chan-btn:hover .chan-dot, .chan-btn.selected .chan-dot { opacity: 1; }
+    .chan-name { font-size: 12.5px; font-weight: 700; color: var(--navy); display: block; line-height: 1.3; }
+    .chan-vals { font-size: 11px; color: var(--muted2); font-family: var(--mono); }
+
+    /* ---------- GA4 badge ---------- */
+    .ga4-row { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .ga4-badge { font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+    .ga4-good { background: var(--ok-bg); color: var(--ok); }
+    .ga4-meh  { background: var(--navy-tint); color: var(--navy); }
+    .ga4-bad  { background: var(--orange-tint); color: var(--orange-dark); }
+
+    /* ---------- Campagnenaam-opbouw ---------- */
+    .cn-grid { display: flex; flex-direction: column; gap: 12px; }
+    .cn-part { display: grid; grid-template-columns: 1fr; gap: 0; }
+    .cn-fixed { display: inline-flex; align-items: center; gap: 8px; background: var(--grey); border: 1px dashed var(--border-strong); border-radius: var(--r-md); padding: 10px 12px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+    .cn-fixed span { font-family: var(--sans); font-size: 11.5px; color: var(--muted2); }
+    .cn-inline { display: flex; gap: 8px; }
+    .cn-inline > * { min-width: 0; }
+    .cn-example { background: var(--magenta-tint); border: 1px solid #f6c3d6; border-left: 3px solid var(--magenta); border-radius: 0 var(--r-md) var(--r-md) 0; padding: 13px 15px; margin-bottom: 18px; }
+    .cn-example-label { font-size: 10.5px; font-weight: 700; color: var(--magenta-dark); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 7px; }
+    .cn-example-pattern { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+    .cn-example-pattern strong { color: var(--navy); }
+    .cn-example-val { font-family: var(--mono); font-size: 13px; color: var(--magenta-dark); font-weight: 700; word-break: break-all; margin-top: 6px; line-height: 1.5; }
+    .cn-preview { margin-top: 14px; background: var(--navy); border-radius: var(--r-md); padding: 12px 14px; }
+    .cn-preview-label { font-size: 10.5px; font-weight: 700; color: rgba(255,255,255,.55); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 5px; }
+    .cn-preview-val { font-family: var(--mono); font-size: 13px; color: #fff; word-break: break-all; line-height: 1.5; }
+    .cn-preview-val em { color: var(--muted2); font-style: italic; font-family: var(--sans); font-size: 12.5px; }
+    .cn-pattern { font-family: var(--mono); font-size: 11.5px; color: var(--muted2); margin-top: 7px; }
+
+    /* ---------- Buttons ---------- */
+    .next-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 18px; padding: 11px 20px; background: var(--cta); color: #fff; border: none; border-radius: var(--r-md); font-family: var(--sans); font-size: 13.5px; font-weight: 700; cursor: pointer; transition: background .15s, transform .1s; }
+    .next-btn:hover { background: var(--cta-hover); }
+    .next-btn:active { transform: scale(.985); }
+    .next-btn svg { width: 14px; height: 14px; }
+    .btn { padding: 10px 16px; border-radius: var(--r-md); font-family: var(--sans); font-weight: 700; font-size: 13px; cursor: pointer; border: none; transition: background .15s, transform .1s, border-color .15s, color .15s; }
+    .btn:active { transform: scale(.985); }
+    .btn-primary { background: var(--cta); color: #fff; }
+    .btn-primary:hover { background: var(--cta-hover); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border-strong); }
+    .btn-ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+    /* ---------- Output ---------- */
+    .output-block { background: var(--grey); border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px; font-family: var(--mono); font-size: 12px; line-height: 1.8; word-break: break-all; min-height: 62px; }
+    .o-base { color: var(--navy); }
+    .o-sep { color: var(--muted2); }
+    .o-key { color: var(--magenta-dark); font-weight: 700; }
+    .o-val { color: var(--magenta); }
+    .o-empty { color: var(--muted2); font-style: italic; font-family: var(--sans); font-size: 13px; }
+    .output-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+    .copy-btn { background: var(--cta); border: none; border-radius: var(--r-md); padding: 10px 18px; font-family: var(--sans); font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; transition: background .15s; }
+    .copy-btn:hover { background: var(--cta-hover); }
+    .copy-btn.copied { background: var(--ok); }
+    .output-meta { display: flex; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 11.5px; color: var(--muted2); }
+    .status-ok { color: var(--ok); font-weight: 700; }
+    .status-warn { color: var(--orange-dark); font-weight: 700; }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    table tr { border-bottom: 1px solid var(--border); }
+    table tr:last-child { border-bottom: none; }
+    table td { padding: 9px 0; font-size: 12.5px; vertical-align: middle; }
+    table td:first-child { font-family: var(--mono); color: var(--magenta-dark); font-weight: 700; width: 42%; font-size: 11.5px; }
+    table td.empty { color: var(--muted2); font-style: italic; }
+    .save-row { display: flex; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+
+    /* ---------- Opgeslagen ---------- */
+    .history-list { display: flex; flex-direction: column; max-height: 330px; overflow-y: auto; }
+    .history-item { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--grey); }
+    .history-item:last-child { border-bottom: none; }
+    .hi-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--magenta); flex-shrink: 0; opacity: .45; }
+    .hi-info { flex: 1; min-width: 0; }
+    .hi-campaign { font-size: 12.5px; font-weight: 700; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hi-meta { font-size: 11.5px; color: var(--muted2); margin-top: 2px; font-family: var(--mono); }
+    .hi-actions { display: flex; gap: 5px; flex-shrink: 0; }
+    .sm-btn { background: transparent; border: 1px solid var(--border-strong); border-radius: var(--r-sm); padding: 5px 10px; font-family: var(--sans); font-size: 11.5px; font-weight: 700; color: var(--muted); cursor: pointer; transition: border-color .15s, color .15s; }
+    .sm-btn:hover { border-color: var(--magenta); color: var(--magenta); }
+    .no-history { text-align: center; padding: 22px 0; font-size: 12.5px; color: var(--muted2); }
+
+    .restart-row { text-align: center; margin-top: 28px; }
+    .restart-link { font-size: 13.5px; color: var(--magenta); font-weight: 700; cursor: pointer; background: none; border: none; font-family: var(--sans); }
+    .restart-link:hover { text-decoration: underline; }
+    .footnote { margin-top: 34px; text-align: center; font-size: 11.5px; color: var(--muted2); line-height: 1.7; }
+    .footnote a { color: var(--muted); }
+
+    #confettiCanvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; display: none; }
+    #confettiCanvas.active { display: block; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: #fff; font-size: 13px; font-weight: 600; padding: 11px 18px; border-radius: var(--r-md); opacity: 0; transform: translateY(8px); transition: opacity .25s, transform .25s; pointer-events: none; z-index: 999; max-width: 340px; line-height: 1.5; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 640px) {
+      .topbar { padding: 0 16px; }
+      .topbar-meta { display: none; }
+      .app { padding: 28px 14px 70px; }
+      .intro h2 { font-size: 25px; }
+      .step { gap: 12px; }
+      .chan-grid { grid-template-columns: 1fr; }
+      .cn-inline { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 17 17" fill="none" aria-hidden="true">
+        <path d="M2 8.5h13M8.5 2l6.5 6.5-6.5 6.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="brand-name">UTM <span>Builder</span></span>
+  </div>
+  <span class="topbar-meta">Loket &middot; conventie uit Notion</span>
+</div>
+
+<div class="app">
+  <div class="intro">
+    <h2>Bouw een UTM-link in 4 stappen</h2>
+    <p>Kies je kanaal, vul de onderdelen van de campagnenaam in en kopieer de link. De opbouw volgt de naamgeving per kanaal uit de pagina <em>UTM Tracking</em>: kleine letters, underscores in plaats van spaties.</p>
+  </div>
+
+  <!-- SPELREGELS -->
+  <div class="accordion" id="utmAccordion">
+    <button class="accordion-trigger" onclick="toggleAccordion()" aria-expanded="false">
+      <span class="accordion-trigger-left">
+        <span class="accordion-icon">
+          <svg viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="6" stroke="#E0336E" stroke-width="1.5"/>
+            <path d="M7 6.5V10M7 4.3v.5" stroke="#E0336E" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        Spelregels — lees dit één keer
+      </span>
+      <svg class="accordion-chevron" viewBox="0 0 14 14" fill="none" width="16" height="16" aria-hidden="true">
+        <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="accordion-body">
+      <p class="acc-intro">
+        Zonder UTM's zie je in GA4 wél dat er 200 mensen op een pagina kwamen, maar niet waarvandaan. Met UTM's weet je per kanaal, per campagne en per uiting wat het opleverde. Voorwaarde is dat iedereen exact dezelfde schrijfwijze gebruikt — daar is deze tool voor.
+      </p>
+      <div class="acc-blocks">
+        <div class="acc-block">
+          <span class="acc-block-icon">🔤</span>
+          <div>
+            <div class="acc-block-title">Altijd kleine letters</div>
+            <div class="acc-block-text">Google zegt het letterlijk: <em>&ldquo;Parameter values are case sensitive.&rdquo;</em> <code>Facebook</code> en <code>facebook</code> worden dus twee aparte rijen in je rapport, met gesplitste sessies en conversies. Verwarrend detail: de <em>kanaalindeling</em> van GA4 is w&eacute;l hoofdletterongevoelig, dus je kanaal klopt terwijl je cijfers uiteenvallen. GA4 repareert dit niet zelf &mdash; deze tool zet daarom alles om naar lowercase, ook bij plakken uit Word of een mail.</div>
+          </div>
+        </div>
+        <div class="acc-block">
+          <span class="acc-block-icon">␣</span>
+          <div>
+            <div class="acc-block-title">Spaties hoef je niet te vervangen</div>
+            <div class="acc-block-text">Typ gewoon <code>leaderboard week 29</code>. De tool maakt er <code>leaderboard_week_29</code> van, net als de formule in de Notion-database.</div>
+          </div>
+        </div>
+        <div class="acc-block">
+          <span class="acc-block-icon">🔗</span>
+          <div>
+            <div class="acc-block-title">Landingspagina is een schone URL</div>
+            <div class="acc-block-text">Plak de URL zonder <code>?utm_...</code> erachter. Staan er al UTM's in, dan haalt de tool die eruit en zegt het. Heeft de pagina al een <code>?</code> (bv. <code>?download_id=123</code>), dan komen de UTM's er met <code>&amp;</code> netjes achteraan.</div>
+          </div>
+        </div>
+        <div class="acc-block">
+          <span class="acc-block-icon">📅</span>
+          <div>
+            <div class="acc-block-title">Datum-conventie</div>
+            <div class="acc-block-text">Weeknummer (<code>w26_2026</code>) of <code>ddmmyyyy</code> (<code>30062026</code>). Per kanaal staat vast welke van de twee je gebruikt, dus daar hoef je niet meer over na te denken.</div>
+          </div>
+        </div>
+        <div class="acc-block">
+          <span class="acc-block-icon">📊</span>
+          <div>
+            <div class="acc-block-title">Wat GA4 met je keuze doet</div>
+            <div class="acc-block-text">Sinds 1 september draait GA4 op de eigen kanaalgroep <strong>Loket Kanalen</strong>: drie correcties bovenaan, daarna de standaardindeling van GA4. Regels worden op volgorde afgelopen en de <strong>eerste match wint</strong>. Bij stap 2 zie je daarom live in welk kanaal je link terechtkomt, plus een waarschuwing als dat niet is wat je bedoelt.</div>
+          </div>
+        </div>
+        <div class="acc-block">
+          <span class="acc-block-icon">🔍</span>
+          <div>
+            <div class="acc-block-title">Waarom dit geen bureaucratie is</div>
+            <div class="acc-block-text">Uit de laatste GA4-controle: <code>hubspot</code> staat naast <code>Hubspot</code>, en <code>linkedin</code> naast <code>LinkedIn</code> — een derde van dat verkeer belandt daardoor in een aparte rij. Voor e-mail alleen zijn er drie verschillende bronwaarden in omloop. En geen enkele campagnenaam in GA4 gebruikt underscores. Elke link die je hier bouwt is er één die dat niet erger maakt.</div>
+          </div>
+        </div>
+        <div class="acc-block">
+          <span class="acc-block-icon">🎯</span>
+          <div>
+            <div class="acc-block-title">utm_term en utm_content zijn optioneel</div>
+            <div class="acc-block-text"><code>utm_content</code> alleen bij A/B-varianten of verschillende buttons. <code>utm_term</code> alleen bij zoekwoorden of doelgroep. Anders leeg laten.</div>
+          </div>
+        </div>
+      </div>
+      <div class="acc-tip">
+        <strong>💡 Gouden regel:</strong> gebruik UTM's op elke link die je buiten loket.nl deelt — advertenties, e-mails, social posts, nieuwsbrieven, partnerplaatsingen. Gebruik ze <em>niet</em> voor interne links op de eigen site, want dan knip je je eigen sessies in stukken. Bij Google Ads geldt: auto-tagging aan, dan géén handmatige UTM's op dezelfde URL.
+      </div>
+    </div>
+  </div>
+
+  <div class="progress">
+    <span class="progress-label" id="progressLabel">Stap 1 van 4</span>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <!-- STAP 1 -->
+  <div class="step active" id="step1">
+    <div class="step-left"><div class="step-num">1</div></div>
+    <div class="step-right">
+      <div class="step-card">
+        <div class="step-card-header">
+          <div>
+            <div class="step-counter">Stap 1 van 4</div>
+            <div class="step-card-title">Naar welke pagina stuur je mensen?</div>
+            <div class="step-card-sub">De schone URL van de landingspagina</div>
+          </div>
+          <span class="step-badge badge-required" id="badge1">Verplicht</span>
+        </div>
+        <div class="step-card-body">
+          <div class="field">
+            <label for="baseUrl">Landingspagina</label>
+            <input type="text" id="baseUrl" placeholder="https://www.loket.nl/salarisadministratie" inputmode="url" autocapitalize="none" autocorrect="off" spellcheck="false" />
+            <div class="note note-warn hidden" id="urlNote"></div>
+            <div class="field-hint">Kopieer de URL uit je browser. Begin met <code>https://</code>. Een <code>#anker</code> blijft achteraan staan, waar het hoort.</div>
+          </div>
+          <button class="next-btn" onclick="goToStep2()">
+            Volgende stap
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M7 2l5 5-5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="done-summary" id="done1"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAP 2 -->
+  <div class="step" id="step2">
+    <div class="step-left"><div class="step-num">2</div></div>
+    <div class="step-right">
+      <div class="step-card">
+        <div class="step-card-header">
+          <div>
+            <div class="step-counter">Stap 2 van 4</div>
+            <div class="step-card-title">Welk kanaal is dit?</div>
+            <div class="step-card-sub">Source en medium volgen automatisch uit je keuze</div>
+          </div>
+          <span class="step-badge badge-required" id="badge2">Verplicht</span>
+        </div>
+        <div class="step-card-body">
+          <div id="channelPicker"></div>
+
+          <div id="channelDetail" class="hidden">
+            <hr class="section-sep" />
+            <div class="section-label">Wat dit oplevert</div>
+            <div class="cn-inline" id="srcMedRow"></div>
+            <div class="ga4-row" id="ga4Row"></div>
+            <div class="note note-warn hidden" id="chanConflict"></div>
+            <div class="note note-warn hidden" id="chanWarn"></div>
+            <div class="note note-info hidden" id="chanGa4Note"></div>
+          </div>
+
+          <button class="next-btn" onclick="goToStep3()">
+            Volgende stap
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M7 2l5 5-5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="done-summary" id="done2"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAP 3 -->
+  <div class="step" id="step3">
+    <div class="step-left"><div class="step-num">3</div></div>
+    <div class="step-right">
+      <div class="step-card">
+        <div class="step-card-header">
+          <div>
+            <div class="step-counter">Stap 3 van 4</div>
+            <div class="step-card-title">Stel de campagnenaam samen</div>
+            <div class="step-card-sub" id="step3Sub">De onderdelen horen bij het kanaal dat je koos</div>
+          </div>
+          <span class="step-badge badge-required" id="badge3">Verplicht</span>
+        </div>
+        <div class="step-card-body">
+          <div class="cn-example" id="cnExample" style="display:none;"></div>
+          <div class="cn-grid" id="campaignFields"></div>
+          <div class="cn-preview">
+            <div class="cn-preview-label">utm_campaign wordt</div>
+            <div class="cn-preview-val" id="cnPreview"><em>Vul de velden hierboven in…</em></div>
+          </div>
+
+          <hr class="section-sep" />
+          <div class="section-label">Optioneel</div>
+          <div class="field">
+            <label for="utmContent">Variant of button <code>utm_content</code></label>
+            <input type="text" id="utmContent" placeholder="variant a, cta onderaan" autocapitalize="none" autocorrect="off" spellcheck="false" />
+            <div class="field-hint">Alleen bij A/B-varianten of verschillende buttons in dezelfde uiting.</div>
+          </div>
+          <div class="field">
+            <label for="utmTerm">Zoekwoord of doelgroep <code>utm_term</code></label>
+            <input type="text" id="utmTerm" placeholder="{keyword}, lookalike 1p" autocapitalize="none" autocorrect="off" spellcheck="false" />
+            <div class="field-hint">Bij Google of Microsoft Ads <code>{keyword}</code>. Accolades blijven staan, die worden niet ge-encodeerd.</div>
+          </div>
+
+          <button class="next-btn" onclick="goToStep4()">
+            Genereer mijn link
+            <svg viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M7 2l5 5-5 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="done-summary" id="done3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAP 4 -->
+  <div class="step" id="step4">
+    <div class="step-left"><div class="step-num">4</div></div>
+    <div class="step-right">
+      <div class="step-card">
+        <div class="step-card-header">
+          <div>
+            <div class="step-counter">Stap 4 van 4</div>
+            <div class="step-card-title">Je UTM-link is klaar</div>
+            <div class="step-card-sub">Kopieer de link en leg de rij vast in Notion</div>
+          </div>
+          <span class="step-badge badge-done" id="badge4" style="display:none;">✓ Klaar</span>
+        </div>
+        <div class="step-card-body">
+          <div class="output-block" id="outputUrl"><span class="o-empty">Vul de stappen hierboven in…</span></div>
+          <div class="output-actions">
+            <button class="copy-btn" id="copyBtn" onclick="copyUrl()">Kopieer link</button>
+            <button class="btn btn-ghost" onclick="copyNotionRow()">Kopieer als Notion-rij</button>
+          </div>
+          <div class="output-meta">
+            <span id="urlStatus">–</span>
+            <span id="urlLen"></span>
+          </div>
+          <div class="ga4-row" id="ga4RowOut" style="margin-top:12px;"></div>
+          <table><tbody id="paramsBody"></tbody></table>
+          <div class="save-row">
+            <button class="btn btn-primary" onclick="addToSaved()">Opslaan in lijst</button>
+            <button class="btn btn-ghost" onclick="exportCSV()">↓ CSV exporteren</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-card" style="margin-top:16px;">
+        <div class="step-card-header">
+          <div class="step-card-title" style="font-size:16px;">Deze sessie</div>
+          <span id="historyCount" style="font-size:11.5px;color:var(--muted2);"></span>
+        </div>
+        <div class="step-card-body">
+          <div class="note note-info hidden" id="storeNote"></div>
+          <div class="history-list" id="historyList">
+            <div class="no-history">Nog geen links opgeslagen.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="restart-row">
+        <button class="restart-link" onclick="restartFlow()">+ Nieuwe link aanmaken</button>
+      </div>
+    </div>
+  </div>
+
+  <p class="footnote" id="footnote" style="display:none;">
+    Deze lijst staat alleen in jouw browser en is dus geen logboek.<br>
+    Leg elke link ook vast in de Notion-database <em>UTM Builder — Loket</em>, dan blijft daar één overzicht.
+  </p>
+</div>
+
+<canvas id="confettiCanvas" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  'use strict';
+
+  /* =========================================================================
+     BRON VAN DEZE LIJSTEN
+     Notion-pagina "UTM Tracking" (naamgeving per kanaal) en de dropdowns van
+     de database "UTM Builder — Loket". Waar die twee elkaar tegenspreken staat
+     dat als `conflict` bij het kanaal en zie je het in de tool terug.
+     ========================================================================= */
+
+  const MEDIA = ['email','referral','banner','appcue','social','newsletter','cpc'];
+
+  const SOURCES = ['hubspot','salarisvanmorgen','rendement','appcues','linkedin',
+                   'facebook','instagram','ondernemersbelang',
+                   'google','bing','chatgpt','handtekening'];
+
+  const MAANDEN = ['januari','februari','maart','april','mei','juni',
+                   'juli','augustus','september','oktober','november','december'];
+
+  const CHANNELS = [
+    /* ---------------- E-mail ---------------- */
+    { id:'hubspot', name:'HubSpot (e-mail)', group:'E-mail', notion:'HubSpot (e-mail)',
+      source:'hubspot', medium:'email',
+      pattern:'naam nieuwsbrief', example:'nieuwsbrief_ak_administrateurs_30_juni_2026',
+      fields:[{ type:'text', key:'naam', label:'Naam van de nieuwsbrief',
+                ph:'nieuwsbrief ak administrateurs 30 juni 2026',
+                hint:'Zoals de nieuwsbrief in HubSpot heet. Typ met spaties.' }],
+      ga4note:'<strong>Zet in HubSpot de eigen tracking-parameters uit voor deze links.</strong> In GA4 staan naast <code>hubspot</code> ook <code>hs_email</code> en <code>email</code> \u2014 dat is HubSpot die zijn standaardwaarden meestuurt en jouw <code>utm_source</code> overschrijft of aanvult. Zolang dat aan staat, blijft je e-mailverkeer over drie bronnen verdeeld hoe netjes je hier ook tagt.' },
+
+    { id:'handtekening', name:'E-mailhandtekening', group:'E-mail', notion:'handtekening',
+      source:'handtekening', medium:'email',
+      pattern:'afdeling of persoon + jaar', example:'sales_2026',
+      fields:[{ type:'text', key:'naam', label:'Van wie of welke afdeling?', ph:'sales 2026' }],
+      conflict:'Dit kanaal staat in de Notion-<em>database</em> maar niet in de naamgevingstabel op de pagina. Ook is <code>handtekening</code> als <em>source</em> ongebruikelijk: source hoort het platform of de verwijzer te zijn. Laat MarCom de lijst bijwerken.' },
+
+    /* ---------------- Partners ---------------- */
+    { id:'svm-content', name:'Salaris Vanmorgen — content', group:'Partners', notion:'Salaris Vanmorgen — content',
+      source:'salarisvanmorgen', medium:'referral',
+      pattern:'artikel + week + jaar + onderwerp', example:'artikel_w26_2026_loonaangifte',
+      fields:[{ type:'fixed', value:'artikel', label:'Type' },
+              { type:'week', key:'week', label:'Week en jaar' },
+              { type:'text', key:'onderwerp', label:'Onderwerp', ph:'loonaangifte' }],
+      ga4note:'Dit is een <strong>ingekochte</strong> plaatsing, maar <code>referral</code> valt in GA4 onder <em>Referral</em> — een kanaal dat iedereen leest als gratis verkeer. Je paid/organic-verdeling klopt daardoor niet. Op te lossen met een custom channel group, niet met een andere medium-waarde.' },
+
+    { id:'svm-banner', name:'Salaris Vanmorgen — banner', group:'Partners', notion:'Salaris Vanmorgen — banner',
+      source:'salarisvanmorgen', medium:'banner',
+      pattern:'leaderboard/rectangle + week + jaar + onderwerp', example:'leaderboard_w26_2026_loonaangifte',
+      fields:[{ type:'select', key:'formaat', label:'Formaat', options:['leaderboard','rectangle'] },
+              { type:'week', key:'week', label:'Week en jaar' },
+              { type:'text', key:'onderwerp', label:'Onderwerp', ph:'loonaangifte' }],
+      ga4note:'<code>banner</code> valt netjes in <em>Display</em> en telt dus als betaald. Let op: Salaris Vanmorgen wordt hierdoor over drie kanalen verdeeld (Referral, Display, Email) en verschijnt nooit als één regel in een kanaalrapport. Groeperen kan wel op <code>utm_source</code>.' },
+
+    { id:'svm-nieuwsbrief', name:'Salaris Vanmorgen — nieuwsbrief', group:'Partners', notion:'Salaris Vanmorgen — nieuwsbrief',
+      source:'salarisvanmorgen', medium:'email',
+      pattern:'advertorial/banner + week + jaar + onderwerp', example:'advertorial_w26_2026_loonaangifte',
+      fields:[{ type:'select', key:'soort', label:'Soort plaatsing', options:['advertorial','banner'] },
+              { type:'week', key:'week', label:'Week en jaar' },
+              { type:'text', key:'onderwerp', label:'Onderwerp', ph:'loonaangifte' }],
+      ga4note:'Ingekochte plaatsing die in GA4 in <em>Email</em> terechtkomt, naast je eigen nieuwsbrieven. Handig om te weten bij het lezen van je e-mailcijfers.' },
+
+    { id:'rendement', name:'Rendement', group:'Partners', notion:'Rendement',
+      source:'rendement', medium:'email',
+      pattern:'advertorial + titel + ddmmyyyy + onderwerp', example:'advertorial_hrrendement_30062026_loonaangifte',
+      fields:[{ type:'fixed', value:'advertorial', label:'Type' },
+              { type:'select', key:'titel', label:'Titel', options:['hrrendement','salarisrendement'] },
+              { type:'date', key:'datum', label:'Datum van de mailing' },
+              { type:'text', key:'onderwerp', label:'Onderwerp', ph:'loonaangifte' }],
+      ga4note:'Ingekochte advertorial die in GA4 onder <em>Email</em> valt, samen met je eigen nieuwsbrieven.' },
+
+    { id:'ondernemersbelang', name:'Ondernemersbelang', group:'Partners', notion:'Ondernemersbelang',
+      source:'ondernemersbelang', medium:'referral',
+      pattern:'ddmmyyyy + thema', example:'30062026_loonaangifte',
+      fields:[{ type:'date', key:'datum', label:'Datum van de plaatsing' },
+              { type:'text', key:'thema', label:'Thema', ph:'loonaangifte' }],
+      ga4note:'Ingekochte plaatsing die als <em>Referral</em> binnenkomt. Let ook op: dit patroon (<code>ddmmyyyy_thema</code>) is identiek aan dat van Social (organic), dus bij hetzelfde thema op dezelfde dag krijg je twee kanalen met exact dezelfde campagnenaam.' },
+
+    /* ---------------- Social ---------------- */
+    { id:'social', name:'Social (organic)', group:'Social', notion:'Social (organic)',
+      sourceOptions:['linkedin','facebook','instagram'], medium:'social',
+      pattern:'ddmmyyyy + onderwerp', example:'30062026_loonaangifte',
+      fields:[{ type:'date', key:'datum', label:'Datum van de post' },
+              { type:'text', key:'onderwerp', label:'Onderwerp', ph:'loonaangifte' }],
+      ga4note:'Goed gekozen: <code>social</code> matcht de GA4-regel voor <em>Organic Social</em> exact. Gebruik nooit <code>organic-social</code> of <code>organic_social</code>, want die matchen niet.' },
+
+    { id:'li-newsletter', name:'LinkedIn newsletter', group:'Social', notion:'LinkedIn newsletter',
+      source:'linkedin', medium:'newsletter',
+      pattern:'maand + jaar + titel', example:'juni_2026_de_zomer_gaat_van_start',
+      fields:[{ type:'month', key:'maand', label:'Maand en jaar' },
+              { type:'text', key:'titel', label:'Titel van de editie', ph:'de zomer gaat van start' }],
+      conflict:'<strong>Deze combinatie komt nooit in Email terecht.</strong> GA4 kent <code>newsletter</code> niet als medium, en <em>Organic Social</em> matcht al op de <em>source</em> <code>linkedin</code> — vijf posities vóór de e-mailregel. Medium veranderen naar <code>email</code> helpt dus niet: ook <code>linkedin</code> + <code>email</code> wordt Organic Social. Wil je dit als e-mail meten, dan moet de <em>source</em> anders (bijvoorbeeld <code>li-nieuwsbrief</code>) of je hebt een custom channel group nodig.' },
+
+    /* ---------------- Advertenties ---------------- */
+    { id:'li-ads', name:'LinkedIn Ads', group:'Advertenties', notion:'LinkedIn Ads',
+      source:'linkedin', medium:'cpc',
+      pattern:'campagnenaam', example:'abm_loonaangifte',
+      fields:[{ type:'text', key:'naam', label:'Campagnenaam', ph:'abm loonaangifte',
+                hint:'Exact dezelfde naam als in LinkedIn Campaign Manager, anders blijf je handmatig mappen.' }] },
+
+    { id:'fb-ads', name:'Facebook Ads', group:'Advertenties', notion:'Facebook Ads',
+      source:'facebook', medium:'cpc',
+      pattern:'campagnenaam', example:'abm_loonaangifte',
+      fields:[{ type:'text', key:'naam', label:'Campagnenaam', ph:'abm loonaangifte',
+                hint:'Exact dezelfde naam als in Meta Ads Manager.' }],
+      ga4note:'Met source <code>facebook</code> voor al je Meta-verkeer kun je Instagram-plaatsingen niet onderscheiden. Zet Meta\'s dynamische plaatsingsparameter in <code>utm_content</code> als je dat wel wilt zien.' },
+
+    { id:'google-ads', name:'Google Ads', group:'Advertenties', notion:'Google Ads',
+      source:'google', medium:'cpc',
+      pattern:'campagnenaam', example:'search_loonaangifte',
+      fields:[{ type:'text', key:'naam', label:'Campagnenaam', ph:'search loonaangifte' }],
+      warn:'<strong>Auto-tagging wint van deze UTM\'s.</strong> Zolang <code>gclid</code> werkt, gebruikt GA4 de auto-getagde waarden voor source, medium en kanaal; jouw handmatige waarden landen alleen in de aparte <em>Manual</em>-dimensies. Maar zodra de gclid sneuvelt (redirect, consent, parameterstrippende landingspagina) valt GA4 volledig terug op je UTM\'s — en dan levert een incomplete set <code>(not set)</code> op. Dus: óf alleen auto-tagging, óf een volledige set. Nooit half.',
+      conflict:'De Notion-tabel noemt source <code>google_ads</code>. Dat werkt niet: GA4 herkent alleen <code>google</code> als zoekmachine, dus met <code>google_ads</code> valt je betaalde zoekverkeer in <em>Paid Other</em> in plaats van <em>Paid Search</em>. Deze tool gebruikt <code>google</code>, net als de dropdown in de database.' },
+
+    { id:'microsoft-ads', name:'Microsoft Ads', group:'Advertenties', notion:'Microsoft Ads',
+      source:'bing', medium:'cpc',
+      pattern:'campagnenaam', example:'search_loonaangifte',
+      fields:[{ type:'text', key:'naam', label:'Campagnenaam', ph:'search loonaangifte' }],
+      conflict:'De Notion-tabel noemt source <code>microsoft_ads</code> en de database <code>microsoft</code>. Beide staan niet in de GA4-lijst van zoekmachines, dus beide leveren <em>Paid Other</em> op in plaats van <em>Paid Search</em>. Alleen <code>bing</code> werkt — daarom staat die hier vast.',
+      ga4note:'<strong>Zet <code>utm_term={keyword}</code> in je Microsoft Ads tracking template.</strong> GA4 leest <code>msclkid</code> niet, dus zonder <code>utm_term</code> heb je hier geen zoekwoorddata. Bij Google Ads doet auto-tagging dat wel voor je.' },
+
+    { id:'chatgpt-ads', name:'ChatGPT Ads', group:'Advertenties', notion:'ChatGPT Ads',
+      source:'chatgpt', medium:'cpc',
+      pattern:'campagnenaam', example:'abm_loonaangifte',
+      fields:[{ type:'text', key:'naam', label:'Campagnenaam', ph:'abm loonaangifte',
+                hint:'Exact dezelfde naam als in de OpenAI Ads Manager.' }],
+      warn:'<strong>Tag hier altijd een volledige set.</strong> OpenAI hangt er zelf een klik-id <code>oppref</code> aan, maar GA4 leest die niet zoals het de <code>gclid</code> van Google w\u00e9l leest. Je UTM\'s zijn dus de enige bron van waarheid: ontbreekt er \u00e9\u00e9n, dan krijg je <code>(not set)</code>. Heeft jouw account het veld <em>Landing page query parameters</em>, zet de parameters daar neer; anders plak je deze hele URL als bestemming.',
+      ga4note:'<strong>Paid Other is hier het juiste eindpunt, geen fout.</strong> Ook in je eigen kanaalgroep <em>Loket Kanalen</em> komt dit in Paid Other: betaalde kanalen worden ge\u00ebvalueerd v\u00f3\u00f3r AI-assistenten. Organisch ChatGPT-verkeer komt binnen als <code>chatgpt.com</code> en blijft daardoor gescheiden van deze <code>chatgpt</code>. <strong>Tag deze links dus altijd:</strong> sinds mei 2026 zet GA4 verkeer met een AI-referrer zelf op medium <code>ai-assistant</code>, dus een ongetagde advertentieklik verdwijnt tussen je gratis AI-verkeer.' },
+
+    /* ---------------- In-app ---------------- */
+    { id:'appcues', name:'Appcues', group:'In-app', notion:'Appcues',
+      source:'appcues', medium:'appcue',
+      pattern:'naam whitepaper of uiting', example:'whitepaper_verzuim',
+      fields:[{ type:'text', key:'naam', label:'Naam van de uiting', ph:'whitepaper verzuim' }],
+      conflict:'<strong>Appcues tagt nu verkeerd.</strong> In GA4 komt dit verkeer binnen met bron <code>loket</code> in plaats van <code>appcues</code>, en met het medium in twee spellingen (<code>appcue</code> én <code>appcues</code>). Dat is een aanzienlijk deel van al het verkeer. Deze tool levert de juiste waarden — laat de tagging <em>in Appcues zelf</em> gelijktrekken, anders blijft het verschil bestaan.',
+      ga4note:'Los daarvan: je tagt hiermee ingelogde bestaande klanten als campagne, wat je acquisitiecijfers en de original source in HubSpot vervuilt. Overweeg dit als in-app <em>gedrag</em> te meten — een event plus een parameter die niet met <code>utm_</code> begint — in plaats van als acquisitie.' },
+
+    /* ---------------- Overig ---------------- */
+    { id:'anders', name:'Anders / nog niet in de lijst', group:'Overig',
+      freeform:true, source:'', medium:'',
+      sourceOptions:SOURCES, mediumOptions:MEDIA,
+      pattern:'vrij', example:'',
+      fields:[{ type:'text', key:'naam', label:'Campagnenaam', ph:'typ gewoon met spaties' }],
+      warn:'Meld deze combinatie bij MarCom, zodat kanaal, source en medium aan de Notion-lijst worden toegevoegd. Doe je dat niet, dan ontstaat er precies de variatie die deze tool moet voorkomen.' },
+  ];
+
+  const GROUP_ORDER = ['E-mail','Partners','Social','Advertenties','In-app','Overig'];
+
+  /* =========================================================================
+     GA4 default channel group — vereenvoudigde resolver
+     Volgt de evaluatie-orde van Google: Paid Search, Paid Social, Display,
+     Paid Other, Organic Social, Organic Search, Referral, Email, Affiliates.
+     ========================================================================= */
+  const SEARCH_SITES = ['google','bing','yahoo','duckduckgo','ecosia','baidu','yandex','ask','aol'];
+  const SOCIAL_SITES = ['linkedin','facebook','instagram','twitter','x','tiktok','youtube',
+                        'pinterest','reddit','snapchat','whatsapp','threads'];
+  const PAID_MEDIUM = /^(.*cp.*|ppc|retargeting|paid.*)$/;
+
+  /* Eigen kanaalgroep "Loket Kanalen", primair vanaf 1 september 2026.
+     Drie overrides bovenaan, AI-assistenten net na Paid Other, en het
+     Email-kanaal met zijn tweede voorwaarde op de bron. */
+  const AI_RE = /(\.ai$|chatgpt|openai|perplexity|copilot|gemini\.google|deepseek|grok\.com)/;
+  const VAKMEDIA_RE = /^(salarisvanmorgen|rendement|ondernemersbelang)$/;
+  const PAID_EERST = ['Direct','Cross-network','Paid Search','Paid Social','Display','Paid Other'];
+
+  function loketChannel(source, medium) {
+    const s = (source || '').toLowerCase(), m = (medium || '').toLowerCase();
+    if (!s && !m) return null;
+
+    if (s === 'appcues' || /^appcues?$/.test(m)) return { name:'In-product', level:'good' };
+    if (m === 'newsletter') return { name:'LinkedIn nieuwsbrief', level:'good' };
+    if (VAKMEDIA_RE.test(s)) return { name:'Betaalde vakmedia', level:'good' };
+
+    const def = ga4Channel(s, m);
+    if (!def) return null;
+    if (PAID_EERST.indexOf(def.name) !== -1) return def;
+    if (AI_RE.test(s)) return { name:'AI-assistenten', level:'good' };
+    if (['Organic Social','Organic Search','Referral'].indexOf(def.name) !== -1) return def;
+    if (def.name === 'Email' || /^(hubspot|handtekening)$/.test(s)) return { name:'Email', level:'good' };
+    return def;
+  }
+
+  function ga4Channel(source, medium) {
+    const s = (source || '').toLowerCase();
+    const m = (medium || '').toLowerCase();
+    if (!s && !m) return null;
+
+    const isSearch = SEARCH_SITES.indexOf(s) !== -1;
+    const isSocial = SOCIAL_SITES.indexOf(s) !== -1;
+    const isPaid = PAID_MEDIUM.test(m);
+
+    if (isSearch && isPaid) return { name:'Paid Search', level:'good' };
+    if (isSocial && isPaid) return { name:'Paid Social', level:'good' };
+    if (['display','banner','expandable','interstitial','cpm'].indexOf(m) !== -1) return { name:'Display', level:'good' };
+    if (isPaid) return { name:'Paid Other', level:'bad',
+      why:'De <em>source</em> staat niet in de zoek- of social-lijst van GA4, dus dit belandt niet in Paid Search of Paid Social.' };
+    if (isSocial || ['social','social-network','social-media','sm','social network','social media'].indexOf(m) !== -1) return { name:'Organic Social', level:'good' };
+    if (m === 'organic') return { name:'Organic Search', level:'good' };
+    if (['referral','app','link'].indexOf(m) !== -1) return { name:'Referral', level:'good' };
+    if (/^(email|e-mail|e_mail|e mail)$/.test(m) || /^(email|e-mail|e_mail|e mail)$/.test(s)) return { name:'Email', level:'good' };
+    if (m === 'affiliate') return { name:'Affiliates', level:'good' };
+    return { name:'Unassigned', level:'bad',
+      why:'Geen enkele standaardregel matcht, dus GA4 kan dit verkeer niet in een kanaal plaatsen.' };
+  }
+
+  /* =========================================================================
+     Helpers
+     ========================================================================= */
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* snake_case volgens de conventie: lowercase, spaties -> _, alleen a-z0-9_ */
+  function snake(s) {
+    return String(s == null ? '' : s)
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // e-accent wordt e
+      .toLowerCase()
+      /* Elke reeks niet-alfanumerieke tekens wordt \u00e9\u00e9n underscore. Dus ook
+         "artikel/w26" wordt artikel_w26 en niet artikelw26 \u2014 losse tekens
+         weggooien plakt woorden onbedoeld aan elkaar. */
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '');
+  }
+
+  /* utm_term houdt dynamische tokens: {keyword}, {{campaign.name}} */
+  function snakeTerm(s) {
+    return String(s == null ? '' : s).trim().toLowerCase().replace(/\s+/g, '_');
+  }
+
+  /* Accolades heel laten: ValueTrack en Meta dynamic params breken op %7B */
+  function enc(v) {
+    return encodeURIComponent(String(v)).replace(/%7B/gi, '{').replace(/%7D/gi, '}');
+  }
+
+  const store = {
+    ok: true,
+    get(k, fb) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fb; } catch (e) { this.ok = false; return fb; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { this.ok = false; return false; } }
+  };
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.innerHTML = msg;
+    t.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  function setNote(id, html, kind) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!html) { el.className = 'note hidden'; el.innerHTML = ''; return; }
+    el.className = 'note note-' + (kind || 'info');
+    el.innerHTML = html;
+  }
+
+  /* =========================================================================
+     URL
+     ========================================================================= */
+  const PARAM_KEYS = { utmSource:'utm_source', utmMedium:'utm_medium', utmCampaign:'utm_campaign',
+                       utmContent:'utm_content', utmTerm:'utm_term' };
+  const PARAMS = ['utmSource','utmMedium','utmCampaign','utmContent','utmTerm'];
+  const UTM_RE = /^utm_(source|medium|campaign|term|content|id|source_platform|creative_format|marketing_tactic)=/i;
+
+  function parseBase(raw) {
+    const s = String(raw == null ? '' : raw).trim();
+    if (!s) return { ok:false, reason:'empty' };
+    let u;
+    try { u = new URL(s); } catch (e) { return { ok:false, reason:'invalid' }; }
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return { ok:false, reason:'protocol' };
+    if (!u.hostname || u.hostname.indexOf('.') === -1) return { ok:false, reason:'host' };
+
+    const parts = u.search.replace(/^\?/, '').split('&').filter(Boolean);
+    const kept = parts.filter(p => !UTM_RE.test(p));
+    const stripped = parts.filter(p => UTM_RE.test(p));
+
+    return { ok:true, base:u.origin + u.pathname,
+             query: kept.length ? '?' + kept.join('&') : '',
+             hash: u.hash || '', stripped: stripped, insecure: u.protocol === 'http:' };
+  }
+
+  function buildUrl(vals) {
+    const p = parseBase(vals.baseUrl);
+    if (!p.ok) return '';
+    const pairs = PARAMS.filter(k => vals[k]).map(k => PARAM_KEYS[k] + '=' + enc(vals[k]));
+    let query = p.query;
+    if (pairs.length) query = query ? query + '&' + pairs.join('&') : '?' + pairs.join('&');
+    return p.base + query + p.hash;   // params vóór het #anker, anders leest GA4 ze niet
+  }
+
+  /* =========================================================================
+     State
+     ========================================================================= */
+  const state = { channel: null, source: '', medium: '', parts: {} };
+
+  function channelById(id) { return CHANNELS.filter(c => c.id === id)[0] || null; }
+
+  function buildCampaign() {
+    const c = state.channel;
+    if (!c) return '';
+    const chunks = [];
+    c.fields.forEach((f, i) => {
+      if (f.type === 'fixed') { chunks.push(f.value); return; }
+      const v = state.parts[f.key || ('f' + i)];
+      if (v) chunks.push(v);
+    });
+    return snake(chunks.join('_'));
+  }
+
+  function getValues() {
+    return {
+      baseUrl:     document.getElementById('baseUrl').value.trim(),
+      utmSource:   state.source,
+      utmMedium:   state.medium,
+      utmCampaign: buildCampaign(),
+      utmContent:  snake(document.getElementById('utmContent').value),
+      utmTerm:     snakeTerm(document.getElementById('utmTerm').value),
+    };
+  }
+
+  /* =========================================================================
+     Stap 2 — kanaalkiezer
+     ========================================================================= */
+  (function renderChannelPicker() {
+    const host = document.getElementById('channelPicker');
+    GROUP_ORDER.forEach(group => {
+      const items = CHANNELS.filter(c => c.group === group);
+      if (!items.length) return;
+      const wrap = document.createElement('div');
+      wrap.className = 'chan-group';
+      const lbl = document.createElement('div');
+      lbl.className = 'chan-group-label';
+      lbl.textContent = group;
+      wrap.appendChild(lbl);
+      const grid = document.createElement('div');
+      grid.className = 'chan-grid';
+      items.forEach(c => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'chan-btn';
+        btn.dataset.id = c.id;
+        const src = c.freeform ? 'kies zelf' : (c.sourceOptions ? c.sourceOptions.join(' / ') : c.source);
+        const med = c.freeform ? '' : ' · ' + (c.mediumOptions ? c.mediumOptions.join(' / ') : c.medium);
+        btn.innerHTML = '<span class="chan-dot"></span><span><span class="chan-name">' + esc(c.name) +
+                        '</span><span class="chan-vals">' + esc(src + med) + '</span></span>';
+        btn.addEventListener('click', () => selectChannel(c.id));
+        grid.appendChild(btn);
+      });
+      wrap.appendChild(grid);
+      host.appendChild(wrap);
+    });
+  })();
+
+  function selectChannel(id) {
+    const c = channelById(id);
+    if (!c) return;
+    state.channel = c;
+    state.source = c.source || (c.sourceOptions ? c.sourceOptions[0] : '');
+    state.medium = c.medium || (c.mediumOptions ? c.mediumOptions[0] : '');
+    if (c.freeform) { state.source = ''; state.medium = ''; }
+    state.parts = {};
+
+    document.querySelectorAll('.chan-btn').forEach(b => b.classList.toggle('selected', b.dataset.id === id));
+    document.getElementById('channelDetail').classList.remove('hidden');
+
+    renderSourceMediumRow();
+    setNote('chanConflict', c.conflict ? '⚠ ' + c.conflict : '', 'warn');
+    setNote('chanWarn', c.warn ? '⚠ ' + c.warn : '', 'warn');
+    setNote('chanGa4Note', c.ga4note || '', 'info');
+
+    renderCampaignFields();
+    updateGa4('ga4Row');
+
+    /* Een ander kanaal betekent een andere opbouw, dus de campagnenaam die er
+       al stond is niet meer geldig. Stap 3 en 4 gaan terug op slot in plaats
+       van een oude naam te laten staan die niet meer bij het kanaal past. */
+    if (maxStepReached > 2) {
+      ['badge3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.className = 'step-badge badge-required';
+        el.textContent = 'Verplicht';
+      });
+      document.getElementById('done3').innerHTML = '';
+      document.getElementById('badge4').style.display = 'none';
+      maxStepReached = 2;
+      setStep(2);
+    }
+  }
+
+  function renderSourceMediumRow() {
+    const c = state.channel;
+    const host = document.getElementById('srcMedRow');
+    host.innerHTML = '';
+
+    host.appendChild(fieldBlock('Source', 'utm_source',
+      c.sourceOptions ? selectEl(c.sourceOptions, state.source, v => { state.source = v; onSrcMedChange(); })
+                      : lockedEl(state.source)));
+
+    host.appendChild(fieldBlock('Medium', 'utm_medium',
+      c.mediumOptions ? selectEl(c.mediumOptions, state.medium, v => { state.medium = v; onSrcMedChange(); })
+                      : lockedEl(state.medium)));
+  }
+
+  function onSrcMedChange() {
+    updateGa4('ga4Row');
+    /* Samenvatting van stap 2 bijwerken als die al was afgerond */
+    if (maxStepReached > 2 && state.source && state.medium) {
+      summary('done2', '<strong>' + esc(state.channel.name) + '</strong> &nbsp;·&nbsp; <code>' +
+        esc(state.source) + '</code> / <code>' + esc(state.medium) + '</code>', 2);
+    }
+    syncOutput();
+  }
+
+  function fieldBlock(label, code, control) {
+    const d = document.createElement('div');
+    d.style.flex = '1';
+    d.className = 'field';
+    d.style.marginBottom = '0';
+    d.innerHTML = '<label>' + esc(label) + ' <code>' + esc(code) + '</code></label>';
+    d.appendChild(control);
+    return d;
+  }
+
+  function lockedEl(value) {
+    const d = document.createElement('div');
+    d.className = 'cn-fixed';
+    d.style.width = '100%';
+    d.textContent = value || '—';
+    return d;
+  }
+
+  function selectEl(options, current, onChange) {
+    const s = document.createElement('select');
+    if (!current) {
+      const o = document.createElement('option');
+      o.value = ''; o.textContent = 'Kies…';
+      s.appendChild(o);
+    }
+    options.forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      if (v === current) o.selected = true;
+      s.appendChild(o);
+    });
+    s.addEventListener('change', () => onChange(s.value));
+    return s;
+  }
+
+  function updateGa4(hostId) {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    const res = loketChannel(state.source, state.medium);
+    if (!res) { host.innerHTML = ''; return; }
+    host.innerHTML = 'In GA4 komt dit binnen in kanaal <span class="ga4-badge ga4-' + res.level + '">' +
+                     esc(res.name) + '</span>' + (res.why ? '<span style="flex-basis:100%;font-size:11.5px;color:var(--orange-dark);">' + res.why + '</span>' : '');
+  }
+
+  /* =========================================================================
+     Stap 3 — campagnenaam-opbouw
+     ========================================================================= */
+  function renderCampaignFields() {
+    const c = state.channel;
+    const host = document.getElementById('campaignFields');
+    host.innerHTML = '';
+    document.getElementById('step3Sub').textContent =
+      c ? 'Opbouw voor ' + c.name : 'De onderdelen horen bij het kanaal dat je koos';
+    const ex = document.getElementById('cnExample');
+    if (c && c.example) {
+      ex.innerHTML = '<div class="cn-example-label">Zo hoort de naam eruit te zien</div>' +
+        '<div class="cn-example-pattern">Patroon: <strong>' + esc(c.pattern) + '</strong></div>' +
+        '<div class="cn-example-val">' + esc(c.example) + '</div>';
+      ex.style.display = '';
+    } else {
+      ex.innerHTML = '';
+      ex.style.display = 'none';
+    }
+
+    if (!c) return;
+    const now = new Date();
+
+    c.fields.forEach((f, i) => {
+      const key = f.key || ('f' + i);
+      const block = document.createElement('div');
+      block.className = 'field';
+      block.style.marginBottom = '0';
+
+      if (f.type === 'fixed') {
+        block.innerHTML = '<label>' + esc(f.label || 'Vast onderdeel') + '</label>';
+        const d = document.createElement('div');
+        d.className = 'cn-fixed';
+        d.innerHTML = esc(f.value) + ' <span>staat vast</span>';
+        block.appendChild(d);
+
+      } else if (f.type === 'select') {
+        block.innerHTML = '<label>' + esc(f.label) + '</label>';
+        if (!state.parts[key]) state.parts[key] = f.options[0];
+        block.appendChild(selectEl(f.options, state.parts[key], v => { state.parts[key] = v; refreshCampaign(); }));
+
+      } else if (f.type === 'week') {
+        block.innerHTML = '<label>' + esc(f.label) + ' <code>w26_2026</code></label>';
+        const row = document.createElement('div');
+        row.className = 'cn-inline';
+        const wk = document.createElement('input');
+        wk.type = 'number'; wk.min = '1'; wk.max = '53'; wk.placeholder = 'week, bv. 26';
+        const yr = document.createElement('input');
+        yr.type = 'number'; yr.min = '2020'; yr.max = '2100'; yr.value = String(now.getFullYear());
+        const upd = () => {
+          const w = parseInt(wk.value, 10), y = parseInt(yr.value, 10);
+          state.parts[key] = (w >= 1 && w <= 53 && y) ? 'w' + String(w).padStart(2, '0') + '_' + y : '';
+          refreshCampaign();
+        };
+        wk.addEventListener('input', upd); yr.addEventListener('input', upd);
+        row.appendChild(wk); row.appendChild(yr);
+        block.appendChild(row);
+        const hint = document.createElement('div');
+        hint.className = 'field-hint';
+        hint.innerHTML = 'Weeknummers worden op twee cijfers gezet (<code>w05</code>, niet <code>w5</code>) zodat ze sorteerbaar blijven.';
+        block.appendChild(hint);
+
+      } else if (f.type === 'date') {
+        block.innerHTML = '<label>' + esc(f.label) + ' <code>ddmmyyyy</code></label>';
+        const inp = document.createElement('input');
+        inp.type = 'date';
+        inp.addEventListener('input', () => {
+          const v = inp.value;   // yyyy-mm-dd
+          state.parts[key] = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v.slice(8,10) + v.slice(5,7) + v.slice(0,4) : '';
+          refreshCampaign();
+        });
+        block.appendChild(inp);
+
+      } else if (f.type === 'month') {
+        block.innerHTML = '<label>' + esc(f.label) + ' <code>juni_2026</code></label>';
+        const row = document.createElement('div');
+        row.className = 'cn-inline';
+        const mo = selectEl(MAANDEN, MAANDEN[now.getMonth()], () => upd());
+        const yr = document.createElement('input');
+        yr.type = 'number'; yr.min = '2020'; yr.max = '2100'; yr.value = String(now.getFullYear());
+        function upd() {
+          const y = parseInt(yr.value, 10);
+          state.parts[key] = (mo.value && y) ? mo.value + '_' + y : '';
+          refreshCampaign();
+        }
+        yr.addEventListener('input', upd);
+        row.appendChild(mo); row.appendChild(yr);
+        block.appendChild(row);
+        state.parts[key] = MAANDEN[now.getMonth()] + '_' + now.getFullYear();
+
+      } else {  /* text */
+        block.innerHTML = '<label for="cnf_' + key + '">' + esc(f.label) + '</label>';
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.id = 'cnf_' + key;
+        inp.placeholder = f.ph || '';
+        inp.autocapitalize = 'none'; inp.autocorrect = 'off'; inp.spellcheck = false;
+        inp.addEventListener('input', () => { state.parts[key] = inp.value; refreshCampaign(); });
+        forceLowercase(inp);
+        block.appendChild(inp);
+        if (f.hint) {
+          const hint = document.createElement('div');
+          hint.className = 'field-hint';
+          hint.innerHTML = f.hint;
+          block.appendChild(hint);
+        }
+      }
+
+      host.appendChild(block);
+    });
+
+    refreshCampaign();
+  }
+
+  function refreshCampaign() {
+    const name = buildCampaign();
+    const el = document.getElementById('cnPreview');
+    el.innerHTML = name ? esc(name) : '<em>Vul de velden hierboven in…</em>';
+    syncOutput();
+  }
+
+  /* =========================================================================
+     Stappen
+     ========================================================================= */
+  let currentStep = 1;
+  let maxStepReached = 1;
+
+  function setStep(n) {
+    maxStepReached = Math.max(maxStepReached, n);
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById('step' + i);
+      el.classList.remove('active','done','locked','last-visible');
+      if (i > maxStepReached) el.classList.add('locked');
+      else if (i === n) el.classList.add('active');
+      else el.classList.add('done');
+      if (i === maxStepReached) el.classList.add('last-visible');
+    }
+    document.getElementById('footnote').style.display = maxStepReached >= 4 ? '' : 'none';
+    currentStep = n;
+    document.getElementById('progressLabel').textContent = 'Stap ' + n + ' van 4';
+    document.getElementById('progressFill').style.width = (n / 4 * 100) + '%';
+  }
+
+  function editStep(n) { setStep(n); scrollToStep('step' + n); }
+
+  function scrollToStep(id) {
+    setTimeout(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 60);
+  }
+
+  function setBadgeDone(id) {
+    const el = document.getElementById(id);
+    el.className = 'step-badge badge-done';
+    el.textContent = '✓ Klaar';
+  }
+
+  function summary(id, html, stepNo) {
+    document.getElementById(id).innerHTML =
+      '<span style="min-width:0;overflow-wrap:anywhere;">' + html + '</span>' +
+      '<button type="button" class="edit-link" onclick="editStep(' + stepNo + ')">Wijzig</button>';
+  }
+
+  function refreshUrlNotes() {
+    const p = parseBase(document.getElementById('baseUrl').value);
+    if (!p.ok) { setNote('urlNote', ''); return p; }
+    const notes = [];
+    if (p.stripped.length) notes.push('Er stonden al UTM-parameters in deze URL (<code>' + esc(p.stripped.join('&')) + '</code>). Die worden verwijderd, anders krijg je dubbele waarden.');
+    if (p.insecure) notes.push('Deze URL gebruikt <code>http://</code> in plaats van <code>https://</code>. Controleer of dat klopt.');
+    setNote('urlNote', notes.length ? '⚠ ' + notes.join('<br><br>⚠ ') : '', 'warn');
+    return p;
+  }
+
+  function goToStep2() {
+    const input = document.getElementById('baseUrl');
+    const p = parseBase(input.value);
+    if (!p.ok) {
+      input.classList.add('invalid');
+      showToast({ empty:'Vul eerst een landingspagina in',
+                  invalid:'Dit is geen geldige URL. Begin met https://',
+                  protocol:'Gebruik https:// of http://',
+                  host:'De URL mist een geldig domein' }[p.reason] || 'Controleer de URL');
+      input.focus();
+      return;
+    }
+    input.classList.remove('invalid');
+    refreshUrlNotes();
+    let flag = '';
+    if (p.stripped.length) flag += '<br><span style="color:var(--orange-dark);font-weight:700;">⚠ Bestaande UTM\'s verwijderd</span>';
+    if (p.insecure) flag += '<br><span style="color:var(--orange-dark);font-weight:700;">⚠ Let op: http:// in plaats van https://</span>';
+    summary('done1', '<strong>Pagina:</strong> ' + esc(p.base + p.query + p.hash) + flag, 1);
+    setBadgeDone('badge1');
+    setStep(2);
+    scrollToStep('step2');
+  }
+
+  function goToStep3() {
+    if (!state.channel) { showToast('Kies eerst een kanaal'); return; }
+    if (!state.source) { showToast('Kies een source'); return; }
+    if (!state.medium) { showToast('Kies een medium'); return; }
+    summary('done2', '<strong>' + esc(state.channel.name) + '</strong> &nbsp;·&nbsp; <code>' +
+      esc(state.source) + '</code> / <code>' + esc(state.medium) + '</code>', 2);
+    setBadgeDone('badge2');
+    setStep(3);
+    scrollToStep('step3');
+  }
+
+  function goToStep4() {
+    const name = buildCampaign();
+    if (!name) {
+      showToast('Vul de campagnenaam-velden in');
+      const first = document.querySelector('#campaignFields input, #campaignFields select');
+      if (first) first.focus();
+      return;
+    }
+    const vals = getValues();
+    let extra = '';
+    if (vals.utmContent) extra += ' &nbsp;·&nbsp; <strong>content:</strong> ' + esc(vals.utmContent);
+    if (vals.utmTerm) extra += ' &nbsp;·&nbsp; <strong>term:</strong> ' + esc(vals.utmTerm);
+    summary('done3', '<strong>Campagne:</strong> <code>' + esc(name) + '</code>' + extra, 3);
+    setBadgeDone('badge3');
+    document.getElementById('badge4').style.display = '';
+    setStep(4);
+    updateOutput();
+    scrollToStep('step4');
+    setTimeout(fireConfetti, 380);
+  }
+
+  /* =========================================================================
+     Output
+     ========================================================================= */
+  function syncOutput() { if (currentStep === 4) updateOutput(); }
+
+  function updateOutput() {
+    const vals = getValues();
+    const p = parseBase(vals.baseUrl);
+    const url = buildUrl(vals);
+    const out = document.getElementById('outputUrl');
+    const st = document.getElementById('urlStatus');
+
+    if (!url || !p.ok) {
+      out.innerHTML = '<span class="o-empty">Vul de stappen hierboven in…</span>';
+      st.textContent = '–'; st.className = '';
+      document.getElementById('urlLen').textContent = '';
+    } else {
+      const pairs = PARAMS.filter(k => vals[k]).map(k =>
+        '<span class="o-key">' + PARAM_KEYS[k] + '</span><span class="o-sep">=</span><span class="o-val">' + esc(enc(vals[k])) + '</span>');
+      let html = '<span class="o-base">' + esc(p.base) + '</span>';
+      if (p.query) html += '<span class="o-sep">' + esc(p.query) + '</span>';
+      if (pairs.length) html += '<span class="o-sep">' + (p.query ? '&amp;' : '?') + '</span>' + pairs.join('<span class="o-sep">&amp;</span>');
+      if (p.hash) html += '<span class="o-base">' + esc(p.hash) + '</span>';
+      out.innerHTML = html;
+      document.getElementById('urlLen').textContent = url.length + ' tekens';
+
+      const missing = ['utmSource','utmMedium','utmCampaign'].filter(k => !vals[k]);
+      if (missing.length) {
+        st.textContent = 'Ontbreekt: ' + missing.map(k => PARAM_KEYS[k]).join(', ');
+        st.className = 'status-warn';
+      } else {
+        st.textContent = '✓ Volgt de conventie';
+        st.className = 'status-ok';
+      }
+    }
+
+    updateGa4('ga4RowOut');
+
+    const tbody = document.getElementById('paramsBody');
+    tbody.innerHTML = '';
+    PARAMS.forEach(k => {
+      const val = vals[k];
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + PARAM_KEYS[k] + '</td><td class="' + (val ? '' : 'empty') + '">' + (val ? esc(val) : '–') + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function writeClipboard(text, okMsg) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => showToast(okMsg)).catch(() => fallbackCopy(text, okMsg));
+    } else fallbackCopy(text, okMsg);
+  }
+  function fallbackCopy(text, okMsg) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly','');
+    ta.style.position = 'fixed'; ta.style.top = '-1000px';
+    document.body.appendChild(ta); ta.select();
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    showToast(ok ? okMsg : 'Kopiëren lukt niet, selecteer de link handmatig');
+  }
+
+  function copyUrl() {
+    const url = buildUrl(getValues());
+    if (!url) { showToast('Nog geen geldige link'); return; }
+    writeClipboard(url, 'Link gekopieerd naar klembord');
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Gekopieerd';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Kopieer link'; btn.classList.remove('copied'); }, 2500);
+  }
+
+  /* Tab-gescheiden rij in de kolomvolgorde van de Notion-database. */
+  function copyNotionRow() {
+    const vals = getValues();
+    const url = buildUrl(vals);
+    if (!url) { showToast('Nog geen geldige link'); return; }
+    const row = [
+      vals.baseUrl,
+      state.channel ? (state.channel.notion || state.channel.name) : '',
+      vals.utmSource, vals.utmMedium, vals.utmCampaign,
+      vals.utmContent, vals.utmTerm
+    ].join('\t');
+    writeClipboard(row, 'Notion-rij gekopieerd — kolomvolgorde: Landingspagina, Kanaal, Source, Medium, Campagnenaam, utm_content, utm_term');
+  }
+
+  /* =========================================================================
+     Opgeslagen lijst
+     ========================================================================= */
+  const STORE_KEY = 'utm_builder_loket_v2';
+  let savedList = store.get(STORE_KEY, []);
+  if (!Array.isArray(savedList)) savedList = [];
+
+  function addToSaved() {
+    const vals = getValues();
+    const url = buildUrl(vals);
+    if (!url) { showToast('Nog geen geldige link'); return; }
+    savedList.unshift({ url:url, vals:vals, chan: state.channel ? state.channel.name : '', ts: Date.now() });
+    if (savedList.length > 50) savedList = savedList.slice(0, 50);
+    const ok = store.set(STORE_KEY, savedList);
+    renderSaved();
+    showToast(ok ? 'Opgeslagen. Zet hem ook in de Notion-database.' : 'Toegevoegd, maar niet bewaard na sluiten');
+  }
+
+  function renderSaved() {
+    const el = document.getElementById('historyList');
+    const countEl = document.getElementById('historyCount');
+    countEl.textContent = savedList.length ? savedList.length + (savedList.length === 1 ? ' link' : ' links') : '';
+    setNote('storeNote', store.ok ? '' : 'Deze weergave bewaart niets in de browser. De lijst werkt tot je de pagina sluit — exporteer de CSV als je hem wilt houden.', 'info');
+
+    if (!savedList.length) { el.innerHTML = '<div class="no-history">Nog geen links opgeslagen.</div>'; return; }
+    el.innerHTML = '';
+    savedList.forEach((item, i) => {
+      const d = new Date(item.ts);
+      const date = d.toLocaleDateString('nl-NL', { day:'2-digit', month:'short' }) + ' ' +
+                   d.toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' });
+      const div = document.createElement('div');
+      div.className = 'history-item';
+      div.innerHTML =
+        '<span class="hi-dot"></span><div class="hi-info">' +
+        '<div class="hi-campaign">' + esc(item.vals.utmCampaign || '(geen naam)') + '</div>' +
+        '<div class="hi-meta">' + esc(item.vals.utmSource || '?') + ' / ' + esc(item.vals.utmMedium || '?') + ' · ' + esc(date) + '</div>' +
+        '</div><div class="hi-actions">' +
+        '<button type="button" class="sm-btn" data-act="copy" data-i="' + i + '">Kopieer</button>' +
+        '<button type="button" class="sm-btn" data-act="del" data-i="' + i + '" aria-label="Verwijderen">✕</button>' +
+        '</div>';
+      el.appendChild(div);
+    });
+  }
+
+  document.getElementById('historyList').addEventListener('click', e => {
+    const btn = e.target.closest('.sm-btn');
+    if (!btn) return;
+    const i = parseInt(btn.dataset.i, 10);
+    const item = savedList[i];
+    if (!item) return;
+    if (btn.dataset.act === 'copy') writeClipboard(item.url, 'Link gekopieerd');
+    if (btn.dataset.act === 'del') { savedList.splice(i,1); store.set(STORE_KEY, savedList); renderSaved(); }
+  });
+
+  function exportCSV() {
+    if (!savedList.length) { showToast('Geen opgeslagen links'); return; }
+    const headers = ['Datum','Landingspagina','Kanaal','Source','Medium','Campagnenaam','utm_content','utm_term','Volledige UTM-link'];
+    const rows = savedList.map(it => [
+      new Date(it.ts).toLocaleString('nl-NL'), it.vals.baseUrl, it.chan,
+      it.vals.utmSource, it.vals.utmMedium, it.vals.utmCampaign,
+      it.vals.utmContent, it.vals.utmTerm, it.url
+    ].map(v => '"' + String(v == null ? '' : v).replace(/"/g,'""') + '"').join(';'));
+    const csv = '\uFEFF' + [headers.join(';')].concat(rows).join('\r\n');
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    const href = URL.createObjectURL(blob);
+    a.href = href;
+    a.download = 'utm-loket-' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(href), 1000);
+    showToast('CSV geëxporteerd');
+  }
+
+  /* =========================================================================
+     Reset, accordion, lowercase
+     ========================================================================= */
+  function restartFlow() {
+    ['baseUrl','utmContent','utmTerm'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.value = ''; el.classList.remove('invalid'); }
+    });
+    state.channel = null; state.source = ''; state.medium = ''; state.parts = {};
+    document.querySelectorAll('.chan-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('channelDetail').classList.add('hidden');
+    document.getElementById('campaignFields').innerHTML = '';
+    document.getElementById('cnPreview').innerHTML = '<em>Vul de velden hierboven in…</em>';
+    const exEl = document.getElementById('cnExample');
+    exEl.innerHTML = ''; exEl.style.display = 'none';
+    ['badge1','badge2','badge3'].forEach(id => {
+      const el = document.getElementById(id);
+      el.className = 'step-badge badge-required';
+      el.textContent = 'Verplicht';
+    });
+    document.getElementById('badge4').style.display = 'none';
+    setNote('urlNote',''); setNote('chanConflict',''); setNote('chanWarn',''); setNote('chanGa4Note','');
+    maxStepReached = 1;
+    setStep(1);
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  function toggleAccordion() {
+    const acc = document.getElementById('utmAccordion');
+    const open = acc.classList.toggle('open');
+    acc.querySelector('.accordion-trigger').setAttribute('aria-expanded', String(open));
+  }
+
+  function forceLowercase(el) {
+    el.addEventListener('input', () => {
+      const lower = el.value.toLowerCase();
+      if (el.value !== lower) {
+        const pos = el.selectionStart;
+        el.value = lower;
+        try { el.setSelectionRange(pos, pos); } catch (e) {}
+      }
+    });
+    el.addEventListener('paste', e => {
+      e.preventDefault();
+      const cd = e.clipboardData || window.clipboardData;
+      const text = (cd ? cd.getData('text') : '').toLowerCase();
+      const start = el.selectionStart, end = el.selectionEnd;
+      el.value = el.value.slice(0,start) + text + el.value.slice(end);
+      const caret = start + text.length;
+      try { el.setSelectionRange(caret, caret); } catch (e2) {}
+      el.dispatchEvent(new Event('input', { bubbles:true }));
+    });
+  }
+
+  /* =========================================================================
+     Confetti
+     ========================================================================= */
+  const CONFETTI_PALETTE = ['#E0336E','#EB6309','#263272','#ffffff','#f7a3c1','#f7c39a'];
+  const confettiCanvas = document.getElementById('confettiCanvas');
+  const cctx = confettiCanvas.getContext('2d');
+  let confettiPieces = [];
+  let confettiRAF = null;
+
+  function sizeCanvas() {
+    const dpr = window.devicePixelRatio || 1;
+    confettiCanvas.width = window.innerWidth * dpr;
+    confettiCanvas.height = window.innerHeight * dpr;
+    cctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', () => { if (confettiPieces.length) sizeCanvas(); });
+
+  function makePiece(ox, oy) {
+    const angle = (-90 + (Math.random()*110 - 55)) * Math.PI/180;
+    const speed = 9 + Math.random()*11;
+    const ribbon = Math.random() > 0.35;
+    return { x:ox, y:oy,
+      vx: Math.cos(angle)*speed*(0.7 + Math.random()*0.6), vy: Math.sin(angle)*speed,
+      w: ribbon ? 3+Math.random()*3 : 5+Math.random()*4,
+      h: ribbon ? 11+Math.random()*9 : 5+Math.random()*4,
+      round: !ribbon,
+      color: CONFETTI_PALETTE[Math.floor(Math.random()*CONFETTI_PALETTE.length)],
+      rot: Math.random()*Math.PI*2, rotSpeed:(Math.random()-0.5)*0.22,
+      flip: Math.random()*Math.PI*2, flipSpeed: 0.08+Math.random()*0.14,
+      drift:(Math.random()-0.5)*0.45, life:0, maxLife: 110+Math.random()*70 };
+  }
+
+  function fireConfetti() {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    sizeCanvas();
+    confettiCanvas.classList.add('active');
+    const w = window.innerWidth, h = window.innerHeight;
+    [{x:w*0.2,y:h*0.72,n:45},{x:w*0.8,y:h*0.72,n:45}].forEach(b => {
+      for (let i = 0; i < b.n; i++) { const p = makePiece(b.x,b.y); p.vx += (w/2-b.x)*0.006; confettiPieces.push(p); }
+    });
+    if (!confettiRAF) confettiRAF = requestAnimationFrame(stepConfetti);
+  }
+
+  function stepConfetti() {
+    cctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+    confettiPieces = confettiPieces.filter(p => {
+      p.life++; p.vy += 0.28; p.vx *= 0.985; p.vy *= 0.992;
+      p.vx += Math.sin(p.life*0.05)*p.drift*0.35;
+      p.x += p.vx; p.y += p.vy; p.rot += p.rotSpeed; p.flip += p.flipSpeed;
+      const fade = p.life > p.maxLife*0.65 ? 1 - (p.life - p.maxLife*0.65)/(p.maxLife*0.35) : 1;
+      if (fade <= 0 || p.y > window.innerHeight + 60) return false;
+      cctx.save();
+      cctx.translate(p.x,p.y); cctx.rotate(p.rot);
+      cctx.scale(1, Math.abs(Math.cos(p.flip))*0.85 + 0.15);
+      cctx.globalAlpha = Math.max(0,fade);
+      cctx.fillStyle = p.color;
+      if (p.round) { cctx.beginPath(); cctx.ellipse(0,0,p.w/2,p.h/2,0,0,Math.PI*2); cctx.fill(); }
+      else if (cctx.roundRect) { cctx.beginPath(); cctx.roundRect(-p.w/2,-p.h/2,p.w,p.h,1.5); cctx.fill(); }
+      else cctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      cctx.restore();
+      return true;
+    });
+    if (confettiPieces.length) confettiRAF = requestAnimationFrame(stepConfetti);
+    else { confettiRAF = null; confettiCanvas.classList.remove('active'); cctx.clearRect(0,0,window.innerWidth,window.innerHeight); }
+  }
+
+  /* =========================================================================
+     Init
+     ========================================================================= */
+  ['utmContent','utmTerm'].forEach(id => forceLowercase(document.getElementById(id)));
+  ['baseUrl','utmContent','utmTerm'].forEach(id =>
+    document.getElementById(id).addEventListener('input', syncOutput));
+  document.getElementById('baseUrl').addEventListener('input', e => {
+    e.target.classList.remove('invalid');
+    refreshUrlNotes();
+  });
+  document.getElementById('baseUrl').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && currentStep === 1) { e.preventDefault(); goToStep2(); }
+  });
+
+  setStep(1);
+  renderSaved();
+</script>
+</body>
+</html>
